@@ -13,7 +13,7 @@ namespace Gym.Core.Entities
         public DateTime StartDate { get; set; }
         public TimeSpan Duration { get; set; }
         public DateTime EndTime => StartDate + Duration;
-        public string MyProperty { get; set; }
+        public string Description { get; set; }
 
         public ICollection<ApplicationUserGymClass> AttendingMembers { get; set; }
 

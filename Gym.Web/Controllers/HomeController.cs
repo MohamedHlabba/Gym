@@ -1,5 +1,7 @@
-﻿using Gym.Data.Data;
+﻿using Gym.Core.Entities;
+using Gym.Data.Data;
 using Gym.Web.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -15,15 +17,18 @@ namespace Gym.Web.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly ApplicationDbContext db;
+        private readonly UserManager<ApplicationUser> userManager;
 
-        public HomeController(ILogger<HomeController> logger, ApplicationDbContext db)
+        public HomeController(ILogger<HomeController> logger, ApplicationDbContext db, UserManager<ApplicationUser> userManager)
         {
             _logger = logger;
             this.db = db;
+            this.userManager = userManager;
         }
 
         public IActionResult Index()
         {
+            var loggedIn = userManager.GetUserId(User);
             //var x = db.GymClasses.IgnoreQueryFilters()
             return View();
         }
