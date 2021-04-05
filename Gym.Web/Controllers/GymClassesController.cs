@@ -7,16 +7,20 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Gym.Core.Entities;
 using Gym.Data.Data;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Gym.Web.Controllers
 {
     public class GymClassesController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> userManager;
 
-        public GymClassesController(ApplicationDbContext context)
+        public GymClassesController(ApplicationDbContext context , UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            this.userManager = userManager;
         }
 
         // GET: GymClasses
@@ -24,7 +28,7 @@ namespace Gym.Web.Controllers
         {
             return View(await _context.GymClasses.ToListAsync());
         }
-
+         [Authorize]
         // GET: GymClasses/Details/5
         public async Task<IActionResult> Details(int? id)
         {
@@ -33,7 +37,8 @@ namespace Gym.Web.Controllers
                 return NotFound();
             }
 
-            var gymClass = await _context.GymClasses
+            var gymClass = await _context.GymClasses.Include(g=>g.AttendingMembers)
+                .ThenInclude(g=>g.ApplicationUser)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (gymClass == null)
             {
@@ -42,7 +47,7 @@ namespace Gym.Web.Controllers
 
             return View(gymClass);
         }
-
+        [Authorize]
         // GET: GymClasses/Create
         public IActionResult Create()
         {
@@ -64,7 +69,7 @@ namespace Gym.Web.Controllers
             }
             return View(gymClass);
         }
-
+        [Authorize]
         // GET: GymClasses/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
@@ -115,7 +120,7 @@ namespace Gym.Web.Controllers
             }
             return View(gymClass);
         }
-
+        [Authorize]
         // GET: GymClasses/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
@@ -148,6 +153,39 @@ namespace Gym.Web.Controllers
         private bool GymClassExists(int id)
         {
             return _context.GymClasses.Any(e => e.Id == id);
+        }
+        [Authorize]
+        public async Task<IActionResult> BookingToogle(int? id)
+        {
+
+            if (id==null)
+            {
+                return NotFound();
+
+            }
+            var gymClass = await _context.GymClasses.Include(g=>g.AttendingMembers)
+               .FirstOrDefaultAsync(m => m.Id == id);
+            if (gymClass.AttendingMembers==null)
+            {
+                gymClass.AttendingMembers = new List<ApplicationUserGymClass>();
+
+            }
+            var inloggadMember = userManager.GetUserId(User);
+
+          var member =  gymClass.AttendingMembers.Where(u => u.ApplicationUserId == inloggadMember)
+                .FirstOrDefault();
+            if (member != null)
+            {
+                gymClass.AttendingMembers.Remove(member);
+            }
+            else
+            {
+                ApplicationUserGymClass newMember = new ApplicationUserGymClass();
+                newMember.ApplicationUserId = inloggadMember;
+                gymClass.AttendingMembers.Add(newMember);
+            }
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
         }
     }
 }

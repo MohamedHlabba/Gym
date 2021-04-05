@@ -16,6 +16,6 @@ namespace Gym.Core.Entities
         public string Description { get; set; }
 
         public ICollection<ApplicationUserGymClass> AttendingMembers { get; set; }
-
+        ///public ICollection<ApplicationUser> MyProperty { get; set; }
     }
 }
