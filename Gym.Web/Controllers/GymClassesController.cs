@@ -26,7 +26,10 @@ namespace Gym.Web.Controllers
         // GET: GymClasses
         public async Task<IActionResult> Index()
         {
-            return View(await _context.GymClasses.ToListAsync());
+            var gymClass = await _context.GymClasses.Include(g => g.AttendingMembers).ThenInclude(u=>u.ApplicationUser)
+                .ToListAsync();
+              
+            return View(gymClass);
         }
          [Authorize]
         // GET: GymClasses/Details/5
