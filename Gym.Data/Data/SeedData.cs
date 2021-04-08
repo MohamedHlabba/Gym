@@ -17,7 +17,7 @@ namespace Gym.Data
             using (var context = new ApplicationDbContext
                 (services.GetRequiredService<DbContextOptions<ApplicationDbContext>>()))
             {
-                if (await context.GymClasses.AnyAsync()) return;
+               // if (await context.GymClasses.AnyAsync()) return;
                 var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
                 var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
 
@@ -55,6 +55,16 @@ namespace Gym.Data
                 };
                 var addAdminResult = await userManager.CreateAsync(admin,adminPW);
                 if (!addAdminResult.Succeeded) throw new Exception(string.Join("\n", addAdminResult.Errors));
+                //TODO
+                var adminUser = await userManager.FindByNameAsync(adminEmail);
+
+                foreach (var role in roleNames)
+                {
+                    if (await userManager.IsInRoleAsync(adminUser, role)) continue;
+                    var addToRoleResult = await userManager.AddToRoleAsync(adminUser,role);
+                    if (!addToRoleResult.Succeeded) throw new Exception(string.Join("\n",addToRoleResult.Errors));
+                }
+                await context.SaveChangesAsync();
 
 
             }

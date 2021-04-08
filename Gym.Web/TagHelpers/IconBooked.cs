@@ -20,12 +20,8 @@ namespace Gym.Web.TagHelpers
             output.AddClass("booked", HtmlEncoder.Default);
 
             var booked = IsBooked;
-
-            //// var commons = "https://www.svgrepo.com/show/";
-            // var book = commons + "32605/car.svg";
-            // var cancel = commons + "52322/traffic-cone.svg";
-            var book = "/images/book.png";
-            var cancel = "/images/cancel.png";
+            var book = "/images/new.png";
+            var cancel = "/images/cross.png";
 
 
             var result = (booked == true) ? $"<img src='{cancel}'/>" : $"<img src='{book}'/>";
