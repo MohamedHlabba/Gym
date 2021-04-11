@@ -9,6 +9,7 @@ using Gym.Core.Entities;
 using Gym.Data.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
+using Gym.Web.Extensions;
 
 namespace Gym.Web.Controllers
 {
@@ -54,8 +55,8 @@ namespace Gym.Web.Controllers
         [Authorize]
         // GET: GymClasses/Create
         public IActionResult Create()
-        {
-            return View();
+        {           
+            return Request.IsAjax() ?  PartialView("CreatePartial") : View();
         }
 
         // POST: GymClasses/Create
@@ -69,6 +70,11 @@ namespace Gym.Web.Controllers
             {
                 _context.Add(gymClass);
                 await _context.SaveChangesAsync();
+                if (Request.IsAjax())
+                {
+                    
+                    return PartialView("GymClassPartial", gymClass);
+                }
                 return RedirectToAction(nameof(Index));
             }
             return View(gymClass);
@@ -88,6 +94,10 @@ namespace Gym.Web.Controllers
                 return NotFound();
             }
             return View(gymClass);
+        }
+        public ActionResult Fetch()
+        {
+            return PartialView("CreatePartial");
         }
 
         // POST: GymClasses/Edit/5
@@ -198,7 +208,6 @@ namespace Gym.Web.Controllers
             if (id is null)
                 return BadRequest();
             var userId = userManager.GetUserId(User);
-
             var attending = await _context.ApplicationUserGyms.FindAsync(userId,id);
             if (attending is null)
             {
@@ -217,6 +226,42 @@ namespace Gym.Web.Controllers
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
             
+        }
+        public async Task<IActionResult> Booking()
+        {
+            var userId = userManager.GetUserId(User);
+            var gympass =  _context.ApplicationUsers
+                .Where(u => u.Id == userId).Where(u=>u.AttendedClasses.Count()!=0)
+                .Select(u => u.AttendedClasses);
+
+            //var gymp = _context.ApplicationUsers.Include(u=>u.AttendedClasses).ThenInclude(u=>u.ApplicationUser)
+            //   .Where(u => u.AttendedClasses.)
+            //   .Select(u => u.AttendedClasses);
+
+            var gympasss = _context.ApplicationUserGyms
+                .Where(u => u.ApplicationUserId == userId)
+                .Select(u => u.GymClass);
+
+            var gymClass = await _context.GymClasses.Include(g => g.AttendingMembers).ThenInclude(u => u.ApplicationUser)
+                            .ToListAsync();
+            var bookings = new List<GymClass>();
+
+
+            var model = _context.ApplicationUserGyms
+                .Where(u => u.ApplicationUserId == userId)
+                .Select(a => a.GymClass);
+
+
+            foreach (var item in gymClass)
+            {
+                if (item.AttendingMembers.Where(g => g.ApplicationUserId == userId).Count() != 0)
+                {
+                    bookings.Add(item);
+                }
+
+            }
+            //var bookings = _context.GymClasses.Where(g => g.AttendingMembers == model.ToList());
+            return View(nameof(Index),  bookings);
         }
     }
 

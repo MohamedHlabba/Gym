@@ -1,0 +1,39 @@
+﻿@model IEnumerable<ApplicationUserGymClass>
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> userManger;
+@foreach (var item in Model)
+
+{
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem=>item.GymClass.Name.First())
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.GymClass.StartDate.ToString().First())
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.GymClass.Duration.ToString().First())
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.GymClass.Description.First())
+        </td>
+
+
+
+        <td>
+            @{ if (User.Identity.IsAuthenticated)
+                {
+                    <a asp-action="Edit" asp-route-id="@item.GymClassId">Edit</a><span> | </span>
+                    <a asp-action="Details" asp-route-id="@item.GymClassId">Details</a> <span> | </span>
+                    <a asp-action="Delete" asp-route-id="@item.GymClassId">Delete</a><span> | </span>
+                    @*<a asp-action="BookingToggle" asp-route-id="@item.Id">Book</a>*@
+                    <a asp-action="BookingToggle" asp-route-id="@item.GymClassId"
+                       class="btn @(item.ApplicationUser.AttendedClasses.Where(u=>u.ApplicationUserId.Equals(userManger.GetUserId(User))).Count()==0 ? "btn-success" : "btn-danger")">
+                        @(item.ApplicationUser.AttendedClasses.Where(u => u.ApplicationUserId.Equals(userManger.GetUserId(User))).Count() ==0 ? "book" : "cancel")
+                    </a>
+                    <gympass is-booked="@(item.ApplicationUser.AttendedClasses.Where(u=>u.ApplicationUserId.Equals(userManger.GetUserId(User))).Count()==0 ? false :true)"></gympass>
+                }
+            }
+        </td>
+    </tr>
+}

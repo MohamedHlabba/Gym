@@ -1,0 +1,31 @@
+﻿@model GymClass
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> userManger;
+<tr>
+    <td>
+        @Html.DisplayFor(item => item.Name)
+    </td>
+    <td>
+        @Html.DisplayFor(item => item.StartDate)
+    </td>
+    <td>
+        @Html.DisplayFor(item => item.Duration)
+    </td>
+    <td>
+        @Html.DisplayFor(item => item.Description)
+    </td>
+
+
+
+    <td>
+        @{ if (User.Identity.IsAuthenticated)
+            {
+                <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a><span> | </span>
+                <a asp-action="Details" asp-route-id="@Model.Id">Details</a> <span> | </span>
+                <a asp-action="Delete" asp-route-id="@Model.Id">Delete</a><span> | </span>
+                <a asp-action="BookingToggle" asp-route-id="@Model.Id">Book</a>
+                <gympass is-booked="@(Model.AttendingMembers.Where(u=>u.ApplicationUserId.Equals(userManger.GetUserId(User))).Count()==0 ? false :true)"></gympass>
+            }
+        }
+    </td>
+</tr>
